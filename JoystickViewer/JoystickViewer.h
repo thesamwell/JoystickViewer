@@ -8,37 +8,80 @@
 #include "version.h"
 constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_MINOR) "." stringify(VERSION_PATCH) "." stringify(VERSION_BUILD);
 
+// Helpful macros
+#define CALC_INPUT_POSITION(input, posx, posy, size, iconSize) \
+    (Vector2{posx + (int)(size / 2 * input.Steer) - iconSize / 2, posy + (int)(size / 2 * input.Pitch) - iconSize / 2})
 
-class JoystickViewer: public BakkesMod::Plugin::BakkesModPlugin
-	,public SettingsWindowBase // Uncomment if you wanna render your own tab in the settings menu
-	//,public PluginWindowBase // Uncomment if you want to render your own plugin window
+#define LIN_TO_U32_COLOR(c) \
+	((((int)(c.R) & 0xFF) << 24) | (((int)(c.G) & 0xFF) << 16) | (((int)(c.B) & 0xFF) << 8) | ((int)(c.A) & 0xFF))
+
+#define U32_TO_LIN_COLOR(c) ((c >> 24)&0xFF), ((c >> 16)&0xFF), ((c>>8)&0xFF), (c&0xFF)
+
+// Default Variable Values:
+#define JSV_ENABLE_DEFAULT "1"
+#define JSV_SHOW_CURRENT_POS_DEFAULT "1"
+#define JSV_POSX_DEFAULT "200"
+#define JSV_POSY_DEFAULT "200"
+#define JSV_SIZE_DEFAULT "180"
+#define JSV_HISTORY_LENGTH_DEFAULT "0.186"
+#define JSV_HISTORY_DURATION_DEFAULT "4.0"
+#define JSV_COLOR_DEFAULT_START_DEFAULT "#FFFFFFFF"
+#define JSV_COLOR_DEFAULT_END_DEFAULT "#FFFFFF11"
+#define JSV_COLOR_PRE_START_DEFAULT "(0.000000, 195.005295, 255.000000, 255.000000)"
+#define JSV_COLOR_PRE_END_DEFAULT "(0.000000, 0.000000, 255.000000, 255.000000)"
+#define JSV_COLOR_POST_START_DEFAULT "(255.000000, 0.000000, 0.000000, 255.000000)"
+#define JSV_COLOR_POST_END_DEFAULT "(255.000000, 0.000000, 232.500107, 255.000000)"
+#define JSV_COLOR_OUTER_BOX_DEFAULT "(193.749985, 189.950974, 189.950974, 204.000000)"
+#define JSV_COLOR_JUMP_ICON_DEFAULT "#FFFFFFFF"
+#define JSV_SIZE_ICON_DEFAULT "5"
+#define JSV_SIZE_JUMP_ICON_DEFAULT "9"
+#define JSV_SIZE_LINE_DEFAULT "5"
+
+
+class JoystickViewer: public BakkesMod::Plugin::BakkesModPlugin, public SettingsWindowBase
 {
-
-	//std::shared_ptr<bool> enabled;
-
-	//Boilerplate
-	void onLoad() override;
-	void onUnload() override; // Uncomment and implement if you need a unload method
-
 private:
+	// History Variables
+	int inputHistoryLength;
+	int historyCountdown;
+	int historyDuration;
 	std::vector<ControllerInput> inputHistory;
 	std::vector<ControllerInput> preJumpHistory;
 	std::vector<ControllerInput> postJumpHistory;
-	int inputHistoryLength;
 
+	// Enables
+	bool enable;
+	bool showCurrentPos;
+
+	// Other Variables
+	bool prevJump; // Last jump state for detecting rising edge
+	Vector2 screen_size;
+	
+	// Positions
 	int posx, posy;
 	int size;
-	bool showCurrentPos;
-	bool enable;
-	int historyCountdown;
-	int historyDuration;
-	bool prevJump;
 
-	void DrawInputArray(CanvasWrapper canvas, std::vector<ControllerInput> inputArray, uint32_t color, uint8_t end_opacity);
+	// Colors 
+	uint32_t default_start;
+	uint32_t default_end;
+	uint32_t pre_start;
+	uint32_t pre_end;
+	uint32_t post_start;
+	uint32_t post_end;
+	uint32_t outer_box_color;
+	uint32_t jump_icon_color;
 
-public:
-	void RenderSettings() override; // Uncomment if you wanna render your own tab in the settings menu
-	//void RenderWindow() override; // Uncomment if you want to render your own plugin window
+	// Sizes
+	int icon_size;
+	int jump_icon_size;
+	float line_size;
+
+
 	void OnSetInput(CarWrapper cw, void* params);
 	void Render(CanvasWrapper canvas);
+	void DrawInputArray(CanvasWrapper canvas, std::vector<ControllerInput> inputArray, uint32_t color_start, uint32_t color_end);
+	uint32_t MapColors(uint32_t color_a, uint32_t color_b, int i, int max);
+	void onLoad() override;
+	void onUnload() override;
+	void RenderSettings() override;
 };
