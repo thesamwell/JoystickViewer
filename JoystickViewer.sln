@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JoystickViewer", "JoystickViewer\JoystickViewer.vcxproj", "{CF711C32-607C-4E0B-854B-3D8C3A26907F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CF711C32-607C-4E0B-854B-3D8C3A26907F}.Release|x64.ActiveCfg = Release|x64
+		{CF711C32-607C-4E0B-854B-3D8C3A26907F}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {14B11900-BB41-4C8B-A50E-63CB7C4D1BA1}
+	EndGlobalSection
+EndGlobal
