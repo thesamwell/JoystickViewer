@@ -13,6 +13,26 @@ void JoystickViewer::RenderSettings() {
 		ImGui::SetTooltip(enableCvar.getDescription().c_str());
 	}
 
+	CVarWrapper enTrainingCvar = cvarManager->getCvar("jsv_en_training");
+	if (!enTrainingCvar) { return; }
+	bool cv_en_training = enTrainingCvar.getBoolValue();
+	if (ImGui::Checkbox("Enable View while in Training", &cv_en_training)) {
+		enTrainingCvar.setValue(cv_en_training);
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(enTrainingCvar.getDescription().c_str());
+	}
+
+	CVarWrapper enOnlineGameCvar = cvarManager->getCvar("jsv_en_online_game");
+	if (!enOnlineGameCvar) { return; }
+	bool cv_en_online_game = enOnlineGameCvar.getBoolValue();
+	if (ImGui::Checkbox("Enable View while in an Online Game", &cv_en_online_game)) {
+		enOnlineGameCvar.setValue(cv_en_online_game);
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(enOnlineGameCvar.getDescription().c_str());
+	}
+
 	// Joystick Show Current Pos Checkbox
 	CVarWrapper scpCvar = cvarManager->getCvar("jsv_show_current_pos");
 	if (!scpCvar) { return; }
@@ -22,6 +42,26 @@ void JoystickViewer::RenderSettings() {
 	}
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip(scpCvar.getDescription().c_str());
+	}
+
+	CVarWrapper pojCvar = cvarManager->getCvar("jsv_pause_on_jump");
+	if (!scpCvar) { return; }
+	bool cv_pauseOnJump = pojCvar.getBoolValue();
+	if (ImGui::Checkbox("Pause View after a Jump", &cv_pauseOnJump)) {
+		pojCvar.setValue(cv_pauseOnJump);
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(pojCvar.getDescription().c_str());
+	}
+
+	CVarWrapper sgCvar = cvarManager->getCvar("jsv_show_grid");
+	if (!sgCvar) { return; }
+	bool cv_showGrid = sgCvar.getBoolValue();
+	if (ImGui::Checkbox("Show Grid in Joystick View", &cv_showGrid)) {
+		sgCvar.setValue(cv_showGrid);
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip(sgCvar.getDescription().c_str());
 	}
 
 	ImGui::Separator();
@@ -78,7 +118,7 @@ void JoystickViewer::RenderSettings() {
 	if (ImGui::SliderFloat("History Length", &history_length, historylengthCvar.GetMinimum(), historylengthCvar.GetMaximum())) {
 		historylengthCvar.setValue(history_length);
 	}
-	if(ImGui::IsItemHovered()) {
+	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip(historylengthCvar.getDescription().c_str());
 	}
 
@@ -94,6 +134,8 @@ void JoystickViewer::RenderSettings() {
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip(historydurationCvar.getDescription().c_str());
 	}
+	ImGui::Text("Note: The delays will be wrong when in a local match with multiple cars. ");
+
 
 	// Add Reset button
 	if (ImGui::Button("Reset Durations to Default")) {

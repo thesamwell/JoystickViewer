@@ -19,7 +19,11 @@ constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_M
 
 // Default Variable Values:
 #define JSV_ENABLE_DEFAULT "1"
+#define JSV_EN_TRAINING_DEFAULT "1"
+#define JSV_EN_ONLINE_GAME_DEFAULT "1"
 #define JSV_SHOW_CURRENT_POS_DEFAULT "1"
+#define JSV_PAUSE_ON_JUMP_DEFAULT "1"
+#define JSV_SHOW_GRID_DEFAULT "1"
 #define JSV_POSX_DEFAULT "200"
 #define JSV_POSY_DEFAULT "200"
 #define JSV_SIZE_DEFAULT "180"
@@ -27,10 +31,10 @@ constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_M
 #define JSV_HISTORY_DURATION_DEFAULT "4.0"
 #define JSV_COLOR_DEFAULT_START_DEFAULT "#FFFFFFFF"
 #define JSV_COLOR_DEFAULT_END_DEFAULT "#FFFFFF11"
-#define JSV_COLOR_PRE_START_DEFAULT "(0.000000, 195.005295, 255.000000, 255.000000)"
+#define JSV_COLOR_PRE_START_DEFAULT "(0.000000, 255.000000, 195.000000, 255.000000)"
 #define JSV_COLOR_PRE_END_DEFAULT "(0.000000, 0.000000, 255.000000, 255.000000)"
 #define JSV_COLOR_POST_START_DEFAULT "(255.000000, 0.000000, 0.000000, 255.000000)"
-#define JSV_COLOR_POST_END_DEFAULT "(255.000000, 0.000000, 232.500107, 255.000000)"
+#define JSV_COLOR_POST_END_DEFAULT "(255.000000, 232.500015, 0.000000, 255.000000)"
 #define JSV_COLOR_OUTER_BOX_DEFAULT "(193.749985, 189.950974, 189.950974, 204.000000)"
 #define JSV_COLOR_JUMP_ICON_DEFAULT "#FFFFFFFF"
 #define JSV_SIZE_ICON_DEFAULT "5"
@@ -51,7 +55,11 @@ private:
 
 	// Enables
 	bool enable;
+	bool en_training;
+	bool en_online_game;
+	bool showGrid;
 	bool showCurrentPos;
+	bool pauseOnJump;
 
 	// Other Variables
 	bool prevJump; // Last jump state for detecting rising edge
@@ -76,8 +84,9 @@ private:
 	int jump_icon_size;
 	float line_size;
 
-
+	bool IsValidScene();
 	void OnSetInput(CarWrapper cw, void* params);
+	void StoreInput(ControllerInput* ci);
 	void Render(CanvasWrapper canvas);
 	void DrawInputArray(CanvasWrapper canvas, std::vector<ControllerInput> inputArray, uint32_t color_start, uint32_t color_end);
 	uint32_t MapColors(uint32_t color_a, uint32_t color_b, int i, int max);

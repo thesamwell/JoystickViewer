@@ -22,9 +22,29 @@ void JoystickViewer::onLoad()
 		enable = cvar.getBoolValue();
 			});
 
+	cvarManager->registerCvar("jsv_en_training", JSV_EN_TRAINING_DEFAULT, "Enable Joystick Viewer while in training", true, true, 0, true, 1)
+		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
+		en_training = cvar.getBoolValue();
+			});
+
+	cvarManager->registerCvar("jsv_en_online_game", JSV_EN_ONLINE_GAME_DEFAULT, "Enable Joystick Viewer while in an online game", true, true, 0, true, 1)
+		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
+		en_online_game = cvar.getBoolValue();
+			});
+
 	cvarManager->registerCvar("jsv_show_current_pos", JSV_SHOW_CURRENT_POS_DEFAULT, "actively show the current stick position", true, true, 0, true, 1)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		showCurrentPos = cvar.getBoolValue();
+			});
+
+	cvarManager->registerCvar("jsv_pause_on_jump", JSV_PAUSE_ON_JUMP_DEFAULT, "freeze the view when you jump", true, true, 0, true, 1)
+		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
+		pauseOnJump = cvar.getBoolValue();
+			});
+
+	cvarManager->registerCvar("jsv_show_grid", JSV_SHOW_GRID_DEFAULT, "split the view into quadrants", true, true, 0, true, 1)
+		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
+		showGrid = cvar.getBoolValue();
 			});
 
 	cvarManager->registerCvar("jsv_posx", JSV_POSX_DEFAULT, "Joysick Viewer X position", true, true, 0, true, 10000)
@@ -48,7 +68,7 @@ void JoystickViewer::onLoad()
 		preJumpHistory.resize(inputHistoryLength);
 		postJumpHistory.resize(inputHistoryLength);
 			});
-	
+
 	cvarManager->registerCvar("jsv_history_duration", JSV_HISTORY_DURATION_DEFAULT, "# of seconds that the history will persist", true, true, 0.1, true, 20)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		historyDuration = (int)(cvar.getFloatValue() * 120);
@@ -116,7 +136,11 @@ void JoystickViewer::onLoad()
 
 	// Manually initialize all class vars to make sure they are set.
 	enable = cvarManager->getCvar("jsv_enable").getBoolValue();
+	en_training = cvarManager->getCvar("jsv_en_training").getBoolValue();
+	en_online_game = cvarManager->getCvar("jsv_en_online_game").getBoolValue();
 	showCurrentPos = cvarManager->getCvar("jsv_show_current_pos").getBoolValue();
+	pauseOnJump = cvarManager->getCvar("jsv_pause_on_jump").getBoolValue();
+	showGrid = cvarManager->getCvar("jsv_show_grid").getBoolValue();
 	posx = cvarManager->getCvar("jsv_posx").getIntValue();
 	posy = cvarManager->getCvar("jsv_posy").getIntValue();
 	size = cvarManager->getCvar("jsv_size").getIntValue();
@@ -138,7 +162,6 @@ void JoystickViewer::onLoad()
 	jump_icon_size = cvarManager->getCvar("jsv_size_jump_icon").getIntValue();
 	line_size = cvarManager->getCvar("jsv_size_line").getFloatValue();
 
-
 	gameWrapper->HookEventWithCaller<CarWrapper>("Function TAGame.Car_TA.SetVehicleInput", std::bind(&JoystickViewer::OnSetInput, this, std::placeholders::_1, std::placeholders::_2));
 	gameWrapper->RegisterDrawable(std::bind(&JoystickViewer::Render, this, std::placeholders::_1));
 
@@ -150,28 +173,60 @@ void JoystickViewer::onUnload() {
 	gameWrapper->UnregisterDrawables();
 }
 
-void JoystickViewer::OnSetInput(CarWrapper cw, void* params) {
-	if (!gameWrapper->IsInFreeplay()) {
-		return;
+bool JoystickViewer::IsValidScene() {
+	// Return true if the current scene is valid to run on
+	if (!enable) { return false; }
+
+	if (!gameWrapper->IsInCustomTraining()) {
+		if (gameWrapper->IsInOnlineGame() && en_online_game) {
+			ServerWrapper server = gameWrapper->GetOnlineGame();
+			if (!server.IsNull()) {
+				return true;
+			}
+		}
+		else if (gameWrapper->IsInGame() && en_training) {
+			ServerWrapper server = gameWrapper->GetGameEventAsServer();
+			if (!server.IsNull()) {
+				if (!server.GetbMatchEnded()) {
+					return true;
+				}
+			}
+		}
+	}
+	else if (en_training) {
+		return true;
 	}
 
-	ControllerInput* ci = (ControllerInput*)params;
-	if (enable) {
-		// Update the input history with the new inputs
-		if (inputHistory.size() >= inputHistoryLength) {
-			int numToRemove = 1 + inputHistory.size() - inputHistoryLength;
-			inputHistory.erase(inputHistory.begin(), inputHistory.begin() + numToRemove);
-		}
-		inputHistory.push_back(*ci);
-		
+	return false;
+}
 
-		if (postJumpHistory.size() < inputHistory.size()) {
-			postJumpHistory.push_back(*ci);
-		}
+void JoystickViewer::OnSetInput(CarWrapper cw, void* params) {
+	if (!IsValidScene()) { return; }
+
+	// OnSetInput is called once per car, 120 times/s. So in local matches with multiple cars, it will be called 
+	// >120hz so the arrays will fill up faster and the delays won't last as long. This check ensures we only 
+	// store the player's inputs, but the delays will still be wrong, but its a niche use case so that's ok for now.
+	CarWrapper car = gameWrapper->GetLocalCar();
+	if (!car.IsNull()) {
+		ControllerInput ci = car.GetInput();
+		JoystickViewer::StoreInput(&ci);
+	}
+}
+
+void JoystickViewer::StoreInput(ControllerInput* ci) {
+	// Update the input history with the new inputs
+	if (inputHistory.size() >= inputHistoryLength) {
+		int numToRemove = 1 + inputHistory.size() - inputHistoryLength;
+		inputHistory.erase(inputHistory.begin(), inputHistory.begin() + numToRemove);
+	}
+	inputHistory.push_back(*ci);
+		
+	if (postJumpHistory.size() < inputHistory.size()) {
+		postJumpHistory.push_back(*ci);
 	}
 
 	// if rising edge of jump button
-	if (!prevJump && ci->Jump == 1) {
+	if (!prevJump && ci->Jump == 1 && pauseOnJump) {
 		historyCountdown = historyDuration;
 
 		// Shallow copy input history
@@ -185,17 +240,19 @@ void JoystickViewer::OnSetInput(CarWrapper cw, void* params) {
 }
 
 void JoystickViewer::Render(CanvasWrapper canvas) {
-	if (!gameWrapper->IsInFreeplay() ||
-		!enable) {
-		return;
-	}
+	if (!JoystickViewer::IsValidScene()) { return; }
 
     // Always render the box
 	canvas.SetColor(U32_TO_LIN_COLOR(outer_box_color));
 	canvas.SetPosition(Vector2({ posx - size / 2, posy - size / 2 }));
 	canvas.DrawBox(Vector2{ size, size });
 
-	if (historyCountdown > 0) {
+	if (showGrid) {
+		canvas.DrawLine(Vector2{ posx - size / 2, posy }, Vector2{ posx + size / 2, posy });
+		canvas.DrawLine(Vector2{ posx, posy - size / 2 }, Vector2{ posx, posy + size / 2 });
+	}
+
+	if (historyCountdown > 0 && pauseOnJump) {
 		// Render the cached values
 		JoystickViewer::DrawInputArray(canvas, preJumpHistory, pre_start, pre_end);
 		if (postJumpHistory.size() > 0) {
