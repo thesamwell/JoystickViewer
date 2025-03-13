@@ -34,13 +34,13 @@ constexpr auto plugin_version = stringify(VERSION_MAJOR) "." stringify(VERSION_M
 #define JSV_COLOR_DEFAULT_END_DEFAULT "#FFFFFF11"
 #define JSV_COLOR_PRE_START_DEFAULT "(0.000000, 255.000000, 195.000000, 255.000000)"
 #define JSV_COLOR_PRE_END_DEFAULT "(0.000000, 0.000000, 255.000000, 255.000000)"
-#define JSV_COLOR_POST_START_DEFAULT "(255.000000, 0.000000, 0.000000, 255.000000)"
-#define JSV_COLOR_POST_END_DEFAULT "(255.000000, 232.500015, 0.000000, 255.000000)"
+#define JSV_COLOR_POST_START_DEFAULT "(252.500000, 252.498505, 252.497467, 255.000000)"
+#define JSV_COLOR_POST_END_DEFAULT "(255.000000, 134.999985, 0.000000, 255.000000)"
 #define JSV_COLOR_OUTER_BOX_DEFAULT "(193.749985, 189.950974, 189.950974, 204.000000)"
 #define JSV_COLOR_JUMP_ICON_DEFAULT "#FFFFFFFF"
-#define JSV_SIZE_ICON_DEFAULT "5"
-#define JSV_SIZE_JUMP_ICON_DEFAULT "9"
-#define JSV_SIZE_LINE_DEFAULT "5"
+#define JSV_SIZE_ICON_DEFAULT "0.06"
+#define JSV_SIZE_JUMP_ICON_DEFAULT "0.09"
+#define JSV_SIZE_LINE_DEFAULT "0.06"
 
 
 class JoystickViewer: public BakkesMod::Plugin::BakkesModPlugin, public SettingsWindowBase
@@ -88,6 +88,7 @@ private:
 	float line_size;
 
 	bool IsValidScene();
+	void UpdateSizes();
 	void OnSetInput(CarWrapper cw, void* params);
 	void StoreInput(ControllerInput* ci);
 	void Render(CanvasWrapper canvas);

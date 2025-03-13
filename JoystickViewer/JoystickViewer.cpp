@@ -57,9 +57,10 @@ void JoystickViewer::onLoad()
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		posy = cvar.getIntValue();
 			});
-	persistentStorage->RegisterPersistentCvar("jsv_size", JSV_SIZE_DEFAULT, "Joysick Viewer Size", true, true, 1, true, 400)
+	persistentStorage->RegisterPersistentCvar("jsv_size", JSV_SIZE_DEFAULT, "Joysick Viewer Size", true, true, 1, true, 800)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		size = cvar.getIntValue();
+		JoystickViewer::UpdateSizes();
 			});
 
 	persistentStorage->RegisterPersistentCvar("jsv_history_length", JSV_HISTORY_LENGTH_DEFAULT, "# of seconds of inputs to cache for view", true, true, 0.1, true, 5)
@@ -119,21 +120,21 @@ void JoystickViewer::onLoad()
 
 
 	// Sizes / thicknesses
-	persistentStorage->RegisterPersistentCvar("jsv_size_icon", JSV_SIZE_ICON_DEFAULT, "Size of joystick coordinate icons", true, true, 2, true, 30)
+	persistentStorage->RegisterPersistentCvar("jsv_size_icon", JSV_SIZE_ICON_DEFAULT, "Size of joystick coordinate icons", true, true, 0.01, true, 0.15)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
-		icon_size = cvar.getIntValue();
+		icon_size = cvar.getFloatValue() * size;
 		icon_size += (icon_size % 2 != 0) ? 1 : 0; 
 			});
 
-	persistentStorage->RegisterPersistentCvar("jsv_size_jump_icon", JSV_SIZE_JUMP_ICON_DEFAULT, "Size of joystick coordinate jump icon", true, true, 2, true, 30)
+	persistentStorage->RegisterPersistentCvar("jsv_size_jump_icon", JSV_SIZE_JUMP_ICON_DEFAULT, "Size of joystick coordinate jump icon", true, true, 0.01, true, 0.15)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
-		jump_icon_size = cvar.getIntValue();
+		jump_icon_size = cvar.getFloatValue() * size;
 		jump_icon_size += (jump_icon_size % 2 != 0) ? 1 : 0;
 			});
 
-	persistentStorage->RegisterPersistentCvar("jsv_size_line", JSV_SIZE_LINE_DEFAULT, "Size of joystick coordinate lines", true, true, 1.0, true, 30.0)
+	persistentStorage->RegisterPersistentCvar("jsv_size_line", JSV_SIZE_LINE_DEFAULT, "Size of joystick coordinate lines", true, true, 0.01, true, 0.15)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
-		line_size = cvar.getFloatValue();
+		line_size = cvar.getFloatValue() * size;
 			});
 
 	// Manually initialize all class vars to make sure they are set.
@@ -160,9 +161,7 @@ void JoystickViewer::onLoad()
 	outer_box_color = LIN_TO_U32_COLOR(cvarManager->getCvar("jsv_color_outer_box").getColorValue());
 	jump_icon_color = LIN_TO_U32_COLOR(cvarManager->getCvar("jsv_color_jump_icon").getColorValue());
 	
-	icon_size = cvarManager->getCvar("jsv_size_icon").getIntValue();
-	jump_icon_size = cvarManager->getCvar("jsv_size_jump_icon").getIntValue();
-	line_size = cvarManager->getCvar("jsv_size_line").getFloatValue();
+	JoystickViewer::UpdateSizes();
 
 	gameWrapper->HookEventWithCaller<CarWrapper>("Function TAGame.Car_TA.SetVehicleInput", std::bind(&JoystickViewer::OnSetInput, this, std::placeholders::_1, std::placeholders::_2));
 	gameWrapper->RegisterDrawable(std::bind(&JoystickViewer::Render, this, std::placeholders::_1));
@@ -200,6 +199,14 @@ bool JoystickViewer::IsValidScene() {
 	}
 
 	return false;
+}
+
+void JoystickViewer::UpdateSizes() {
+	icon_size = cvarManager->getCvar("jsv_size_icon").getFloatValue() * size;
+	icon_size += (icon_size % 2 != 0) ? 1 : 0;
+	jump_icon_size = cvarManager->getCvar("jsv_size_jump_icon").getFloatValue() * size;
+	jump_icon_size += (jump_icon_size % 2 != 0) ? 1 : 0;
+	line_size = cvarManager->getCvar("jsv_size_line").getFloatValue() * size;
 }
 
 void JoystickViewer::OnSetInput(CarWrapper cw, void* params) {

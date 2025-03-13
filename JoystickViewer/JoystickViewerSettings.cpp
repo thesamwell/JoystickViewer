@@ -146,14 +146,14 @@ void JoystickViewer::RenderSettings() {
 	ImGui::Separator();
 	ImGui::Text("Sizes / Thicknesses:");
 
-	ImGui::Text("Size of the icons (the squares that show each joystick coordinate registered by the game)");
+	ImGui::Text("Size of the icons (the squares that show each joystick coordinate registered by the game) as a fraction of the total view size");
 
 	// Sizes / thicknesses
 	// Size slider
 	CVarWrapper iconSizeCvar = cvarManager->getCvar("jsv_size_icon");
 	if (!iconSizeCvar) { return; }
-	int cv_sizeIcon = iconSizeCvar.getIntValue();
-	if (ImGui::SliderInt("Icon Size", &cv_sizeIcon, iconSizeCvar.GetMinimum(), iconSizeCvar.GetMaximum())) {
+	float cv_sizeIcon = iconSizeCvar.getFloatValue();
+	if (ImGui::SliderFloat("Icon Size", &cv_sizeIcon, iconSizeCvar.GetMinimum(), iconSizeCvar.GetMaximum())) {
 		iconSizeCvar.setValue(cv_sizeIcon);
 	}
 	if (ImGui::IsItemHovered()) {
@@ -164,8 +164,8 @@ void JoystickViewer::RenderSettings() {
 
 	CVarWrapper jumpIconSizeCvar = cvarManager->getCvar("jsv_size_jump_icon");
 	if (!jumpIconSizeCvar) { return; }
-	int cv_sizeJumpIcon = jumpIconSizeCvar.getIntValue();
-	if (ImGui::SliderInt("Jump Icon Size", &cv_sizeJumpIcon, jumpIconSizeCvar.GetMinimum(), jumpIconSizeCvar.GetMaximum())) {
+	float cv_sizeJumpIcon = jumpIconSizeCvar.getFloatValue();
+	if (ImGui::SliderFloat("Jump Icon Size", &cv_sizeJumpIcon, jumpIconSizeCvar.GetMinimum(), jumpIconSizeCvar.GetMaximum())) {
 		jumpIconSizeCvar.setValue(cv_sizeJumpIcon);
 	}
 	if (ImGui::IsItemHovered()) {
