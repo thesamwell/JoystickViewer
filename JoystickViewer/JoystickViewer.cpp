@@ -16,51 +16,53 @@ void JoystickViewer::onLoad()
 	else {
 		screen_size = gameWrapper->GetScreenSize();
 	}
+
+	persistentStorage = std::make_shared<PersistentStorage>(this, "JoystickViewer", true, true);
 	
-	cvarManager->registerCvar("jsv_enable", JSV_ENABLE_DEFAULT, "Enable Joystick Viewer", true, true, 0, true, 1)
+	persistentStorage->RegisterPersistentCvar("jsv_enable", JSV_ENABLE_DEFAULT, "Enable Joystick Viewer", true, true, 0, true, 1)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		enable = cvar.getBoolValue();
 			});
 
-	cvarManager->registerCvar("jsv_en_training", JSV_EN_TRAINING_DEFAULT, "Enable Joystick Viewer while in training", true, true, 0, true, 1)
+	persistentStorage->RegisterPersistentCvar("jsv_en_training", JSV_EN_TRAINING_DEFAULT, "Enable Joystick Viewer while in training", true, true, 0, true, 1)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		en_training = cvar.getBoolValue();
 			});
 
-	cvarManager->registerCvar("jsv_en_online_game", JSV_EN_ONLINE_GAME_DEFAULT, "Enable Joystick Viewer while in an online game", true, true, 0, true, 1)
+	persistentStorage->RegisterPersistentCvar("jsv_en_online_game", JSV_EN_ONLINE_GAME_DEFAULT, "Enable Joystick Viewer while in an online game", true, true, 0, true, 1)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		en_online_game = cvar.getBoolValue();
 			});
 
-	cvarManager->registerCvar("jsv_show_current_pos", JSV_SHOW_CURRENT_POS_DEFAULT, "actively show the current stick position", true, true, 0, true, 1)
+	persistentStorage->RegisterPersistentCvar("jsv_show_current_pos", JSV_SHOW_CURRENT_POS_DEFAULT, "actively show the current stick position", true, true, 0, true, 1)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		showCurrentPos = cvar.getBoolValue();
 			});
 
-	cvarManager->registerCvar("jsv_pause_on_jump", JSV_PAUSE_ON_JUMP_DEFAULT, "freeze the view when you jump", true, true, 0, true, 1)
+	persistentStorage->RegisterPersistentCvar("jsv_pause_on_jump", JSV_PAUSE_ON_JUMP_DEFAULT, "freeze the view when you jump", true, true, 0, true, 1)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		pauseOnJump = cvar.getBoolValue();
 			});
 
-	cvarManager->registerCvar("jsv_show_grid", JSV_SHOW_GRID_DEFAULT, "split the view into quadrants", true, true, 0, true, 1)
+	persistentStorage->RegisterPersistentCvar("jsv_show_grid", JSV_SHOW_GRID_DEFAULT, "split the view into quadrants", true, true, 0, true, 1)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		showGrid = cvar.getBoolValue();
 			});
 
-	cvarManager->registerCvar("jsv_posx", JSV_POSX_DEFAULT, "Joysick Viewer X position", true, true, 0, true, 10000)
+	persistentStorage->RegisterPersistentCvar("jsv_posx", JSV_POSX_DEFAULT, "Joysick Viewer X position", true, true, 0, true, 10000)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		posx = cvar.getIntValue();
 			});
-	cvarManager->registerCvar("jsv_posy", JSV_POSY_DEFAULT, "Joysick Viewer Y position", true, true, 0, true, 10000)
+	persistentStorage->RegisterPersistentCvar("jsv_posy", JSV_POSY_DEFAULT, "Joysick Viewer Y position", true, true, 0, true, 10000)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		posy = cvar.getIntValue();
 			});
-	cvarManager->registerCvar("jsv_size", JSV_SIZE_DEFAULT, "Joysick Viewer Size", true, true, 1, true, 400)
+	persistentStorage->RegisterPersistentCvar("jsv_size", JSV_SIZE_DEFAULT, "Joysick Viewer Size", true, true, 1, true, 400)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		size = cvar.getIntValue();
 			});
 
-	cvarManager->registerCvar("jsv_history_length", JSV_HISTORY_LENGTH_DEFAULT, "# of seconds of inputs to cache for view", true, true, 0.1, true, 5)
+	persistentStorage->RegisterPersistentCvar("jsv_history_length", JSV_HISTORY_LENGTH_DEFAULT, "# of seconds of inputs to cache for view", true, true, 0.1, true, 5)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		// RL Physics runs at 120hz (unless lower frame rate, but we'll assume 120hz), so 120 controller inputs per second to store
 		inputHistoryLength = (int)(cvar.getFloatValue() * 120);
@@ -69,67 +71,67 @@ void JoystickViewer::onLoad()
 		postJumpHistory.resize(inputHistoryLength);
 			});
 
-	cvarManager->registerCvar("jsv_history_duration", JSV_HISTORY_DURATION_DEFAULT, "# of seconds that the history will persist", true, true, 0.1, true, 20)
+	persistentStorage->RegisterPersistentCvar("jsv_history_duration", JSV_HISTORY_DURATION_DEFAULT, "# of seconds that the history will persist", true, true, 0.1, true, 20)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		historyDuration = (int)(cvar.getFloatValue() * 120);
 			});
 
 	// Colors
-	cvarManager->registerCvar("jsv_color_default_start", JSV_COLOR_DEFAULT_START_DEFAULT, "Starting color of default view position")
+	persistentStorage->RegisterPersistentCvar("jsv_color_default_start", JSV_COLOR_DEFAULT_START_DEFAULT, "Starting color of default view position")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		default_start = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
-	cvarManager->registerCvar("jsv_color_default_end", JSV_COLOR_DEFAULT_END_DEFAULT, "Ending color of default view position")
+	persistentStorage->RegisterPersistentCvar("jsv_color_default_end", JSV_COLOR_DEFAULT_END_DEFAULT, "Ending color of default view position")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		default_end = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
-	cvarManager->registerCvar("jsv_color_pre_start", JSV_COLOR_PRE_START_DEFAULT, "Starting color of pre-jump view position")
+	persistentStorage->RegisterPersistentCvar("jsv_color_pre_start", JSV_COLOR_PRE_START_DEFAULT, "Starting color of pre-jump view position")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		pre_start = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
-	cvarManager->registerCvar("jsv_color_pre_end", JSV_COLOR_PRE_END_DEFAULT, "Ending color of pre-jump view position")
+	persistentStorage->RegisterPersistentCvar("jsv_color_pre_end", JSV_COLOR_PRE_END_DEFAULT, "Ending color of pre-jump view position")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		pre_end = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
-	cvarManager->registerCvar("jsv_color_post_start", JSV_COLOR_POST_START_DEFAULT, "Starting color of post-jump view position")
+	persistentStorage->RegisterPersistentCvar("jsv_color_post_start", JSV_COLOR_POST_START_DEFAULT, "Starting color of post-jump view position")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		post_start = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
-	cvarManager->registerCvar("jsv_color_post_end", JSV_COLOR_POST_END_DEFAULT, "Ending color of post-jump view position")
+	persistentStorage->RegisterPersistentCvar("jsv_color_post_end", JSV_COLOR_POST_END_DEFAULT, "Ending color of post-jump view position")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		post_end = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
-	cvarManager->registerCvar("jsv_color_outer_box", JSV_COLOR_OUTER_BOX_DEFAULT, "Color of outer box")
+	persistentStorage->RegisterPersistentCvar("jsv_color_outer_box", JSV_COLOR_OUTER_BOX_DEFAULT, "Color of outer box")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		outer_box_color = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
-	cvarManager->registerCvar("jsv_color_jump_icon", JSV_COLOR_JUMP_ICON_DEFAULT, "Color of icon showing position when jump happened")
+	persistentStorage->RegisterPersistentCvar("jsv_color_jump_icon", JSV_COLOR_JUMP_ICON_DEFAULT, "Color of icon showing position when jump happened")
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		jump_icon_color = LIN_TO_U32_COLOR(cvar.getColorValue());
 			});
 
 
 	// Sizes / thicknesses
-	cvarManager->registerCvar("jsv_size_icon", JSV_SIZE_ICON_DEFAULT, "Size of joystick coordinate icons", true, true, 2, true, 30)
+	persistentStorage->RegisterPersistentCvar("jsv_size_icon", JSV_SIZE_ICON_DEFAULT, "Size of joystick coordinate icons", true, true, 2, true, 30)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		icon_size = cvar.getIntValue();
 		icon_size += (icon_size % 2 != 0) ? 1 : 0; 
 			});
 
-	cvarManager->registerCvar("jsv_size_jump_icon", JSV_SIZE_JUMP_ICON_DEFAULT, "Size of joystick coordinate jump icon", true, true, 2, true, 30)
+	persistentStorage->RegisterPersistentCvar("jsv_size_jump_icon", JSV_SIZE_JUMP_ICON_DEFAULT, "Size of joystick coordinate jump icon", true, true, 2, true, 30)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		jump_icon_size = cvar.getIntValue();
 		jump_icon_size += (jump_icon_size % 2 != 0) ? 1 : 0;
 			});
 
-	cvarManager->registerCvar("jsv_size_line", JSV_SIZE_LINE_DEFAULT, "Size of joystick coordinate lines", true, true, 1.0, true, 30.0)
+	persistentStorage->RegisterPersistentCvar("jsv_size_line", JSV_SIZE_LINE_DEFAULT, "Size of joystick coordinate lines", true, true, 1.0, true, 30.0)
 		.addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		line_size = cvar.getFloatValue();
 			});
