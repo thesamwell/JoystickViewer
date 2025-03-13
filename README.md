@@ -2,6 +2,8 @@
 
 This plugin provides additional features and customizability to the popular [JoystickSelfCheck](https://bakkesplugins.com/plugins/view/54) Bakkesmod plugin for Rocket League.
 
+<img src="./banner.png">
+
 # Features:
 - Capture and display a freeze-frame of joystick inputs immediately before and after a jump.
    - This is useful for improving flip cancels, stalls, and learning how joystick movements affect the car.
@@ -14,19 +16,13 @@ This plugin provides additional features and customizability to the popular [Joy
    - I created my plugin before realizing this one existed. 
    - @Brotzeitsepp's features additional options for showing aerial sensitivity adjustments and deadzone display, however it does not feature a freeze-frame when a jump occurs and lacks some customizability like line size and gradient display options
 
-# Examples: 
+# Example: 
+<img src="./walldash.png" width="200" height="200">  
 
-1. Maktuf Reset  
-<img src="./example1.png" width="200" height="200">
-   - The blue line represents inputs before the jump. It gets brighter as the time nears when the jump happened.
-   - The pink line represents inputs after the jump. It gets more red as time advances further after the jump happened.
-   - The white square represents the joystick input at the exact moment the jump registered.
-
-2. Wall Dash  
-<img src="./example2.png" width="200" height="200">
-   - Driving forward on the right side wall. Darker blue indicates a turn down the wall before the jump.
-   - Lighter blue indicates turning back up the wall right before the jump, as well as a moderate forward tilt.
-   - Pink shows that right after the jump, the joystick is tilted slightly further up before returning to neutral as time progresses.
+   - Blue indicates joystick inputs before the jump, getting brighter as it gets closer to the time of the jump  
+   - Orange indicates inputs after the jump, getting brighter as time advances  
+   - The green icon indicates the input when the jump occurred  
+   - All these colors and sizes, and the number of inputs are customizable  
 
 # Known Issues
 - In local matches with multiple cars, the history length and duration will be incorrect (too short)
